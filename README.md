@@ -52,6 +52,7 @@ urban-context-benchmark/
 │   ├── task2/
 │   ├── task3/
 │   └── task4/             # Contextual/contrastive reasoning implementation
+│   └── task5/
 ├── requirements.txt
 └── README.md
 ```
@@ -65,4 +66,3 @@ urban-context-benchmark/
 5. Configure model credentials through environment variables and run inference.
 6. Parse responses and calculate task-specific metrics.
 
-Detailed Task 4 commands and expected schemas are documented in [`benchmarks/task4/README.md`](benchmarks/task4/README.md). Master Table integration is documented in [`master_table/README.md`](master_table/README.md).
