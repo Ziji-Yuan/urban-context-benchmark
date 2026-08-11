@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Environments and secrets
+.venv/
+venv/
+env/
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Jupyter and editors
+.ipynb_checkpoints/
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS and temporary files
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+*.bak
+*.log
+
+# Large or generated data
+data/
+*.parquet
+*.feather
+*.pkl
+*.pickle
+*.zip
+*.7z
+master_table*.csv
+*_candidate_pairs_*.csv
+*_pair_pool.csv
+*_qa_full.csv
+*_qa_full.json
+*_qa_eval*.csv
+*_qa_eval*.json
+*_qa_eval*.jsonl
+
+# Model and evaluation outputs
+**/generated/
+**/results/
+**/reports/
+**/figures/
+*_predictions.csv
+task4_all_predictions_long.csv
