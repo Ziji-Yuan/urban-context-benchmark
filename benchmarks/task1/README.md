@@ -5,25 +5,23 @@ events, no historical traffic number given), whether a station-hour counts
 as "high traffic" or "normal traffic".
 
 ## Files
-- `task1_benchmark_evaluation.py` - sends the QA pairs to 8 models via
-  OpenRouter and scores the results.
-- `task1_qa_pairs.jsonl` - the 600 QA pairs actually used for evaluation
-  (300 high_traffic + 300 normal_traffic, class-balanced).
-- `eval_results/` - one JSONL file per model with every raw response
-  (question, predicted answer, ground truth, correctness, response time).
+- `task1_benchmark_evaluation.py` - sends the QA pairs to 8 models via OpenRouter and scores the results.
+- `task1_qa_pairs.jsonl` - the 600 QA pairs actually used for evaluation (300 high_traffic + 300 normal_traffic, class-balanced).
+- `eval_results/` - one JSONL file per model with every raw response (question, predicted answer, ground truth, correctness, response time).
 
 ## Workflow
 
-### 1. Run the evaluation
+### Run the evaluation
 
 ```
-pip install requests --break-system-packages
+pip install requests
 export OPENROUTER_API_KEY="sk-or-v1-..."
 python3 task1_benchmark_evaluation.py
 ```
-
-Needs an OpenRouter account with credit (https://openrouter.ai). Writes results to `eval_results/`. 
-The script checkpoints as it goes, if it's interrupted, rerunning it skips questions that already have an answer instead of starting over.
+Things to be noted:
+- Needs an OpenRouter account with credit (https://openrouter.ai) and the API Key is unique to every user. 
+- Writes results to `eval_results/`. 
+- The script checkpoints as it goes so if it's interrupted, it will skips questions that already answered instead of starting over when rerunning.
 
 ## Results Overview
 
