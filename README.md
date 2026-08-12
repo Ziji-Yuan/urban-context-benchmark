@@ -37,6 +37,10 @@ The benchmark integrates six main forms of context:
 
 Large source datasets and generated benchmark outputs are intentionally not stored in this repository.
 
+## Data Preparation
+
+The benchmark combines traffic and crash records, weather conditions, event information, and station-level urban-context features. Dataset-specific collection, processing, and alignment are documented in [`data_pre/README.md`](data_pre/README.md).
+
 ## Benchmark Structure
 
 The benchmark is organised into Task 1, Task 2, Task 3, and Task 4 modules. Each task has its own construction and evaluation workflow. Task 4 is the contextual/contrastive reasoning benchmark: it presents two controlled traffic scenarios and asks whether traffic volume in Scenario B is **Higher**, **Lower**, or **Similar** to Scenario A.
