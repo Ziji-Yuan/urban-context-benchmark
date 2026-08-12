@@ -1,0 +1,81 @@
+Fields Included at Each Information Level
+=========================================
+
+--- L0 (7 fields) ---
+  station_name
+  road_type
+  lga
+  date
+  day_of_week
+  hour
+  expected_volume
+
+--- L1 (14 fields) ---
+  station_name
+  road_type
+  lga
+  date
+  day_of_week
+  hour
+  expected_volume
+  temperature_c
+  apparent_temperature_c
+  relative_humidity_2m_pct
+  windspeed_10m_kmh
+  rain_description
+  cloud_category
+  visibility
+
+--- L2 (14 fields) ---
+  station_name
+  road_type
+  lga
+  date
+  day_of_week
+  is_weekend
+  hour
+  expected_volume
+  temperature_c
+  relative_humidity_2m_pct
+  rain_description
+  visibility
+  holiday_text
+  school_holiday
+
+--- L3 (15 fields) ---
+  station_name
+  road_type
+  lga
+  date
+  day_of_week
+  is_weekend
+  hour
+  expected_volume
+  temperature_c
+  relative_humidity_2m_pct
+  rain_description
+  visibility
+  holiday_text
+  school_holiday
+  event_text
+
+--- L4 (18 fields) ---
+  station_name
+  road_type
+  lga
+  date
+  day_of_week
+  is_weekend
+  hour
+  expected_volume
+  temperature_c
+  relative_humidity_2m_pct
+  rain_description
+  visibility
+  holiday_text
+  school_holiday
+  event_text
+  crash_text
+  land_use_description
+  top_poi_categories
+

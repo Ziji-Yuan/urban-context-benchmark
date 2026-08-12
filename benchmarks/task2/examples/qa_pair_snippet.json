@@ -1,0 +1,34 @@
+{
+  "qa_id": "T1_02620",
+  "level": "L4",
+  "task_config": {
+    "task": 1,
+    "prompt_level": "L4",
+    "answer_option": "C",
+    "answer_label": "increase",
+    "requires_cot": false
+  },
+  "sample_data": {
+    "station_name": "Cambridge Street",
+    "road_type": "Cambridge Street",
+    "lga": "Fairfield",
+    "date": "2024-07-09",
+    "hour": 17,
+    "day_of_week": "Tuesday",
+    "is_weekend": false,
+    "volume": 1403.0,
+    "expected_volume": 1194.0,
+    "traffic_change_pct": 17.5,
+    "traffic_change_label": "increase",
+    "temperature_c": 14.9,
+    "relative_humidity_2m_pct": 80.0,
+    "school_holiday": false,
+    "rain_description": "no rain, dry conditions",
+    "visibility": "8–10 km",
+    "land_use_description": "predominantly residential (99%)",
+    "top_poi_categories": "11 public transport stops, 7 leisure venues, and 3 food/dining venues",
+    "event_text": "",
+    "crash_text": "There are 4 reported crashes nearby.",
+    "holiday_text": ""
+  }
+}
