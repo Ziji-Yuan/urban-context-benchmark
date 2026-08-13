@@ -6,101 +6,162 @@ Task 3 evaluates whether Large Language Models (LLMs) can determine whether an o
 
 Unlike a simple traffic deviation classification task, the model must interpret the observed and expected traffic volumes together with contextual factors such as weather conditions, nearby events, road crashes, public holidays, school holidays, and the surrounding urban environment.
 
+## Repository Contents
+
+The `benchmarks/task3` directory contains the scripts, documentation, and example data used to construct and evaluate Task 3.
+
+```text
+task3/
+├── Examples/
+│   └── anomaly_benchmark_station_sample.csv
+├── .gitkeep
+├── README.md
+├── build_task3_benchmark.py
+├── feature_task3.py
+└── llm_eval_task3.py
+```
+
+### `feature_task3.py`
+
+Performs the feature engineering required for Task 3. It reads the station-hour master context table and constructs:
+
+- Expected traffic volume
+- Traffic change and percentage deviation
+- Traffic direction
+- Rain, crash, event, wind, and holiday severity scores
+- Context severity score
+- Context complexity
+- Context-aware anomaly labels
+- Anomaly reasons
+- Natural-language scenario descriptions
+
+Main outputs:
+
+```text
+master_context_table_with_anomaly_features.csv
+task3_anomaly_station_sample.csv
+```
+
+### `build_task3_benchmark.py`
+
+Constructs the final balanced Task 3 benchmark from the anomaly-labelled observations. It creates the LLM classification questions, maps anomaly classes to `A`, `B`, and `C`, and samples the final evaluation set.
+
+Main output:
+
+```text
+task3_anomaly_classification.csv
+```
+
+### `llm_eval_task3.py`
+
+Evaluates the eight selected LLMs on the Task 3 benchmark. It handles API calls, response parsing, checkpoints, resume/overwrite behaviour, aggregate metrics, per-class metrics, and confusion matrices.
+
+### `Examples/`
+
+Contains example Task 3 data generated during benchmark construction.
+
+#### `anomaly_benchmark_station_sample.csv`
+
+A station-representative anomaly sample used to inspect the structure and labels produced during Task 3 feature engineering. It is an example dataset and is separate from the final balanced 600-instance evaluation benchmark.
+
+### `README.md`
+
+Documents the Task 3 methodology, repository structure, anomaly framework, benchmark construction, evaluated models, evaluation protocol, metrics, and execution instructions.
+
+### `.gitkeep`
+
+A placeholder originally used to keep the `task3` directory tracked when it was empty. It contains no benchmark logic and is not required to run Task 3.
+
 ## Task Definition
 
 Each benchmark instance is constructed from a single traffic observation extracted from the master context table.
 
-Every observation is converted into a structured natural language description containing information such as:
+Every observation is converted into a structured natural-language description containing information such as:
 
-* Traffic monitoring station and road location
-* Date and time
-* Observed traffic volume
-* Expected traffic volume
-* Weather conditions
-* Nearby road crashes
-* Nearby events
-* Public holiday status
-* School holiday status
-* Surrounding urban characteristics
+- Traffic monitoring station and road location
+- Date and time
+- Observed traffic volume
+- Expected traffic volume
+- Weather conditions
+- Nearby road crashes
+- Nearby events
+- Public holiday status
+- School holiday status
+- Surrounding urban characteristics
 
-Traffic deviation is calculated as the percentage difference between observed and expected traffic volume:
+### Traffic Deviation
 
-[
-\Delta_i = \frac{V_i^{obs} - V_i^{exp}}{V_i^{exp}} \times 100
-]
+Traffic deviation is calculated as:
 
-where (V_i^{obs}) represents the observed traffic volume and (V_i^{exp}) represents the expected traffic volume.
+```text
+traffic_change_pct = ((observed_volume - expected_volume) / expected_volume) × 100
+```
 
 A positive deviation indicates traffic volume above the historical baseline, while a negative deviation indicates traffic volume below the historical baseline.
 
 ## Classification Labels
 
-Each benchmark instance is presented as a three class classification problem.
+Each benchmark instance is presented as a three-class classification problem.
 
 | Label | Classification |
-| ----- | -------------- |
-| **A** | Normal         |
-| **B** | Minor Anomaly  |
-| **C** | Major Anomaly  |
+|---|---|
+| **A** | Normal |
+| **B** | Minor Anomaly |
+| **C** | Major Anomaly |
 
 The model is instructed to return exactly one character: **A, B, or C**.
 
 ## Ground Truth Construction
 
-Ground truth labels are generated automatically using a rule based framework that combines traffic deviation with contextual severity.
+Ground-truth labels are generated automatically using a rule-based framework that combines traffic deviation with contextual severity.
 
-The context severity score is calculated as:
+The context severity score is:
 
-[
-S_i = R_i + C_i + E_i + W_i + H_i
-]
+```text
+S = rainfall severity + crash severity + event severity + wind severity + holiday severity
+```
 
-where:
+The components represent:
 
-* (R_i) represents rainfall severity
-* (C_i) represents crash severity
-* (E_i) represents nearby event severity
-* (W_i) represents strong wind conditions
-* (H_i) represents holiday conditions
+- Rainfall severity
+- Crash severity
+- Nearby event severity
+- Strong-wind conditions
+- Holiday conditions
 
 Instead of using one fixed anomaly threshold, the classification thresholds are adjusted according to contextual severity.
 
-| Context Severity    | Minor Anomaly Threshold | Major Anomaly Threshold |
-| ------------------- | ----------------------: | ----------------------: |
-| (S_i = 0)           |                     15% |                     30% |
-| (1 \leq S_i \leq 2) |                     22% |                     40% |
-| (3 \leq S_i \leq 4) |                     30% |                     55% |
-| (S_i > 4)           |                     40% |                     70% |
+| Context Severity | Minor Anomaly Threshold | Major Anomaly Threshold |
+|---|---:|---:|
+| `S = 0` | 15% | 30% |
+| `1 <= S <= 2` | 22% | 40% |
+| `3 <= S <= 4` | 30% | 55% |
+| `S > 4` | 40% | 70% |
 
-The final anomaly label is determined using:
+### Final Anomaly Label
 
-[
-y_i =
-\begin{cases}
-\text{Major Anomaly}, & |\Delta_i| \geq T_M(S_i) \
-\text{Minor Anomaly}, & T_m(S_i) \leq |\Delta_i| < T_M(S_i) \
-\text{Normal}, & |\Delta_i| < T_m(S_i)
-\end{cases}
-]
+The final class is assigned using the absolute traffic deviation and the thresholds corresponding to the observation's context severity.
 
-This approach allows the same traffic deviation to receive different anomaly classifications depending on the surrounding urban context.
+| Condition | Classification |
+|---|---|
+| Absolute deviation >= major threshold | **Major Anomaly** |
+| Absolute deviation >= minor threshold and < major threshold | **Minor Anomaly** |
+| Absolute deviation < minor threshold | **Normal** |
 
-For example, a large traffic deviation occurring during severe weather or a major event may be considered less anomalous than the same deviation occurring under otherwise normal conditions.
+For example, when context severity is `S = 2`, the minor threshold is **22%** and the major threshold is **40%**. A traffic deviation of **18%** is therefore Normal, **30%** is a Minor Anomaly, and **45%** is a Major Anomaly.
+
+This approach allows the same traffic deviation to receive different anomaly classifications depending on the surrounding urban context. A large deviation during severe weather or a major event may be considered less anomalous than the same deviation under otherwise normal conditions.
 
 ## Benchmark Dataset
 
-The final Task 3 evaluation benchmark contains **600 instances**.
+The final Task 3 evaluation benchmark contains **600 instances**, balanced across the three target classes.
 
-The benchmark is balanced across the three target classes:
-
-| Class         | Number of Instances |
-| ------------- | ------------------: |
-| Normal        |                 200 |
-| Minor Anomaly |                 200 |
-| Major Anomaly |                 200 |
-| **Total**     |             **600** |
-
-The balanced class distribution ensures that the evaluation is not dominated by one anomaly category.
+| Class | Number of Instances |
+|---|---:|
+| Normal | 200 |
+| Minor Anomaly | 200 |
+| Major Anomaly | 200 |
+| **Total** | **600** |
 
 ## Evaluated Models
 
@@ -115,11 +176,9 @@ The following eight LLMs are included in the final Task 3 evaluation:
 7. **Gemini 2.5 Pro**
 8. **Llama 3.1 8B**
 
-The models represent different developers, architectures, parameter scales, and training approaches.
-
 ## Evaluation Protocol
 
-All models are evaluated using the same benchmark instances under a **zero shot, single turn classification setting**.
+All models are evaluated using the same benchmark instances under a **zero-shot, single-turn classification setting**.
 
 For every benchmark instance, the model receives the traffic scenario and is instructed to return exactly one classification label:
 
@@ -129,84 +188,27 @@ B
 C
 ```
 
-No explanation or reasoning is requested as part of the final response.
-
-The evaluation script parses the model response and records invalid or empty outputs separately from valid predictions.
+No explanation or reasoning is requested as part of the final response. Invalid or empty outputs are recorded separately from valid predictions.
 
 ## Evaluation Metrics
 
-Model performance is evaluated using several complementary metrics.
+The evaluation reports:
 
-### Accuracy
-
-Accuracy measures the proportion of correctly classified benchmark instances.
-
-### Balanced Accuracy
-
-Balanced accuracy calculates the average recall across the three target classes.
-
-Because the final benchmark contains 200 observations from each class, accuracy and balanced accuracy are directly comparable.
-
-### Macro Precision
-
-Macro Precision calculates precision independently for each class and then gives each class equal weight.
-
-### Macro Recall
-
-Macro Recall calculates recall independently for each class and averages the results across all three classes.
-
-### Macro F1 Score
-
-Macro F1 calculates the F1 score independently for Normal, Minor Anomaly, and Major Anomaly before averaging the three scores.
-
-This metric is particularly useful for determining whether a model performs consistently across all anomaly categories.
-
-### Weighted Metrics
-
-Weighted precision, recall, and F1 score are also calculated using class support.
-
-### Cohen's Kappa
-
-Cohen's Kappa measures agreement between model predictions and ground truth labels while accounting for agreement that could occur by chance.
-
-### Per Class Metrics
-
-Precision, recall, F1 score, and support are calculated separately for:
-
-* Normal
-* Minor Anomaly
-* Major Anomaly
-
-A confusion matrix is also generated for each evaluated model.
-
-## Evaluation Script
-
-The evaluation is implemented in:
-
-```text
-llm_eval_task3.py
-```
-
-The script supports:
-
-* Evaluation of one model at a time
-* Balanced sampling for development and testing
-* Random sampling
-* Limited test runs
-* API model availability checks
-* Automatic retry handling
-* Rate limit handling
-* Periodic checkpoints
-* Resuming interrupted evaluations
-* Overwriting previous model results
-* Model response validation
-* Automatic metric calculation
-* Per class metric generation
-* Confusion matrix generation
+- Accuracy
+- Balanced Accuracy
+- Macro Precision
+- Macro Recall
+- Macro F1
+- Weighted Precision, Recall, and F1
+- Cohen's Kappa
+- Per-class Precision, Recall, F1, and Support
+- Confusion Matrix
+- Invalid/error rate
+- Average response time
 
 ## Model Aliases
 
-The following aliases are used by the evaluation script:
+The evaluation script uses these eight aliases:
 
 ```text
 llama_3_3_70b
@@ -221,31 +223,31 @@ llama_3_1_8b
 
 ## Running the Evaluation
 
-To display the configured models:
+Display the configured models:
 
 ```bash
 python llm_eval_task3.py --list
 ```
 
-To evaluate one model:
+Evaluate one model:
 
 ```bash
 python llm_eval_task3.py --model llama_3_3_70b
 ```
 
-To perform a small balanced test:
+Run a small balanced test:
 
 ```bash
 python llm_eval_task3.py --model llama_3_3_70b --limit 6 --sample-mode balanced
 ```
 
-To resume an interrupted evaluation:
+Resume an interrupted evaluation:
 
 ```bash
 python llm_eval_task3.py --model llama_3_3_70b --resume
 ```
 
-To restart an evaluation and replace the previously saved results:
+Restart an evaluation and replace previously saved results:
 
 ```bash
 python llm_eval_task3.py --model llama_3_3_70b --overwrite
@@ -253,7 +255,7 @@ python llm_eval_task3.py --model llama_3_3_70b --overwrite
 
 ## Output Files
 
-The evaluation script produces the following files:
+The evaluation pipeline produces:
 
 ```text
 task3_anomaly_classification.csv
@@ -265,13 +267,13 @@ confusion_matrix_task3_anomaly_<model_alias>.csv
 
 ### Predictions
 
-`llm_predictions_task3_anomaly.csv` stores the predictions generated by each model together with the expected answer, predicted class, correctness, response time, raw model output, and any recorded errors.
+`llm_predictions_task3_anomaly.csv` stores each model prediction together with the expected answer, predicted class, correctness, response time, raw model output, and recorded errors.
 
 ### Model Metrics
 
-`llm_model_metrics_task3_anomaly.csv` contains the aggregate evaluation metrics for each model.
+`llm_model_metrics_task3_anomaly.csv` contains aggregate evaluation metrics for each model.
 
-### Per Class Metrics
+### Per-Class Metrics
 
 `llm_per_class_metrics_task3_anomaly.csv` contains precision, recall, F1 score, and support for each anomaly class.
 
@@ -286,16 +288,16 @@ A separate confusion matrix is generated for every model with valid predictions.
 3. Select one of the eight configured LLMs.
 4. Construct the classification prompt for each benchmark instance.
 5. Send the prompt to the selected model.
-6. Parse the model response into A, B, or C.
-7. Compare the prediction with the ground truth label.
+6. Parse the response into A, B, or C.
+7. Compare the prediction with the ground-truth label.
 8. Save predictions periodically using checkpoints.
-9. Calculate aggregate and per class evaluation metrics.
+9. Calculate aggregate and per-class evaluation metrics.
 10. Generate the model confusion matrix.
 11. Compare performance across the eight evaluated models.
 
 ## Urban Context Benchmark
 
-Task 3 forms part of the broader **Urban Context Benchmark**, which evaluates the ability of LLMs to understand and reason about urban mobility using real world contextual information.
+Task 3 forms part of the broader **Urban Context Benchmark**, which evaluates the ability of LLMs to understand and reason about urban mobility using real-world contextual information.
 
 The complete benchmark contains five complementary tasks:
 
