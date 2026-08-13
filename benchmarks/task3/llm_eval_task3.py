@@ -19,8 +19,6 @@ from sklearn.metrics import (
 # 1. MODEL CONFIG
 # ============================================================
 #
-# The aliases below match the commands you requested.
-#
 # IMPORTANT:
 # - Groq may retire or rename hosted models.
 # - The script checks Groq's live model list before evaluating.
@@ -36,6 +34,8 @@ from sklearn.metrics import (
 # to see the Groq models currently available to your API key.
 
 MODELS = {
+    # Final 8 LLMs used in Task 3 evaluation
+
     # Google Gemini via OpenRouter
     "gemini_2_5_flash": {
         "provider": "openrouter",
@@ -46,8 +46,7 @@ MODELS = {
         "model": "google/gemini-2.5-pro",
     },
 
-
-    # Meta (OpenRouter)
+    # Meta Llama via OpenRouter
     "llama_3_1_8b": {
         "provider": "openrouter",
         "model": "meta-llama/llama-3.1-8b-instruct",
@@ -57,44 +56,10 @@ MODELS = {
         "model": "meta-llama/llama-3.3-70b-instruct",
     },
 
-    # Meta Llama 4
-    "llama_4_scout": {
-        "provider": "groq",
-        "model": "meta-llama/llama-4-scout-17b-16e-instruct",
-    },
-
-    # Qwen
+    # Qwen via Groq
     "qwen3_32b": {
         "provider": "groq",
         "model": "qwen/qwen3-32b",
-    },
-    "qwen3_6_27b": {
-        "provider": "groq",
-        "model": "qwen/qwen3.6-27b",
-    },
-
-    # OpenAI OSS
-    "gpt_oss_20b": {
-        "provider": "groq",
-        "model": "openai/gpt-oss-20b",
-    },
-    "gpt_oss_120b": {
-        "provider": "groq",
-        "model": "openai/gpt-oss-120b",
-    },
-
-    # OpenRouter models not completed on Groq/Google
-    "deepseek_r1_distill": {
-        "provider": "openrouter",
-        "model": "deepseek/deepseek-r1-distill-llama-70b",
-    },
-    "mixtral_8x22b": {
-        "provider": "openrouter",
-        "model": "mistralai/mixtral-8x22b-instruct-v0.1",
-    },
-    "gemma_2_27b": {
-        "provider": "openrouter",
-        "model": "google/gemma-2-27b-it",
     },
 }
 
